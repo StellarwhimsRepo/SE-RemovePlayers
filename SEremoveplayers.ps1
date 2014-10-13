@@ -19,18 +19,34 @@ $ns2.AddNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
         $nodeid = $node.PlayerId
         $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock[Owner='$nodeid']"  , $ns).Count
             If($nodeOwns -eq 0){
-              $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyObjectBuilder_Faction/Members/MyObjectBuilder_FactionMember[PlayerID='$nodeid']" , $ns2)
+              $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyObjectBuilder_Faction/Members/MyObjectBuilder_FactionMember[PlayerId='$nodeid']" , $ns2)
               $selectdelete.ParentNode.RemoveChild($selectdelete)
               $selectdelete = $myXML2.SelectSingleNode("//Factions/Players/dictionary/item[Key='$nodeid']", $ns2)
               $selectdelete.ParentNode.RemoveChild($selectdelete)
-              $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyobjectBuilder_Faction/JoinRequests/MyObjectBuilder_FactionMember[PlayerID='$nodeid']" , $ns2)
+              $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyobjectBuilder_Faction/JoinRequests/MyObjectBuilder_FactionMember[PlayerId='$nodeid']" , $ns2)
               $selectdelete.ParentNode.RemoveChild($selectdelete)
               $node.ParentNode.RemoveChild($node)
             }
-        
-           
-
+    }
+#remove empty factions
+    $nodeFactions = $myXML2.SelectNodes("//Factions/Factions/MyObjectBuilder_Faction" , $ns2)
+    ForEach($faction in $nodeFactions){
+        $membercount = $faction.Members.MybObjectBuilder_FactionMember.count
+        $factionid = $faction.FactionId
+        If($membercount -eq 0){
+            $selectdelete = $myXML2.SelectNodes("//Factions/Requests/MyObjectBuilder_FactionRequests[FactionId='$factionid']" , $ns2)
+            ForEach($selected in $selectdelete){
+                $selected.ParentNode.RemoveChild($selected)
+            }
+            $selectdelete = $myXML2.SelectNodes("//Factions/Relations/MyObjectBuilder_FactionRelation[FactionId1='$factionid' or FactionId2='$factionid']" , $ns2)
+            ForEach($selected in $selectdelete){
+                $selected.ParentNode.RemoveChild($selected)
+            }
+            $faction.ParentNode.RemoveChild($faction)
+            $deletefactions = $deletefactions + 1
+        }
     }
 
     $myXML.Save($filePath)
+    $myXML2.Save($filePath2)
 
