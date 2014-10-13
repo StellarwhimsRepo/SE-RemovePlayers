@@ -8,7 +8,7 @@ Player removal if no blocks owned.
 
 This powershell script is used by changing the variables at the top of the 'ps1' file to match your server settings.
 
-The default settings will delete players from the game if they do not own any blocks.
+The default settings will delete players from the game if they do not own any blocks. If these actions also empty out a faction, the faction will also be deleted.
 
 Be sure to shut your space engineers server down before running this script!!!
 
