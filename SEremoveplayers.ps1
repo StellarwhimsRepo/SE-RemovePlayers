@@ -12,22 +12,51 @@ $ns2 = New-Object System.Xml.XmlNamespaceManager($myXML2.NameTable)
 $ns2.AddNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
 
 
+#wipe orphaned id's (permanent death issue) if dead player owns nothing.
+
+    $nodePIDs = $myXML2.SelectNodes("//Identities/MyObjectBuilder_Identity"  , $ns2)
+    $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock[Owner='$playerid']"  , $ns)
+    ForEach($node in $nodePIDs){
+        $playerid = $node.PlayerId
+        $clientcount=$myXML2.SelectNodes("//ConnectedPlayers/dictionary/item[Value='$playerid'] | //DisconnectedPlayers/dictionary/item[Value='$playerid']" , $ns2).count
+        $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock[Owner='$playerid']"  , $ns).count
+        IF($clientcount -eq 0 -and $nodeOwns -eq 0){
+            $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyObjectBuilder_Faction/Members/MyObjectBuilder_FactionMember[PlayerId='$playerid']" , $ns2)
+            $selectdelete.ParentNode.RemoveChild($selectdelete)
+            $selectdelete = $myXML2.SelectSingleNode("//Factions/Players/dictionary/item[Key='$playerid']", $ns2)
+            $selectdelete.ParentNode.RemoveChild($selectdelete)
+            $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyobjectBuilder_Faction/JoinRequests/MyObjectBuilder_FactionMember[PlayerId='$playerid']" , $ns2)
+            $selectdelete.ParentNode.RemoveChild($selectdelete)
+            $node.ParentNode.RemoveChild($node)
+            Write-Host -ForegroundColor Green " abandoned ID deleted "
+        }
+    }
+
 # remove players who dont own anything    
 
-    $nodePIDs = $myXML2.SelectNodes("//AllPlayers/PlayerItem"  , $ns2) 
+    $nodePIDs = $myXML2.SelectNodes("//Identities/MyObjectBuilder_Identity"  , $ns2)
+    $nodeClientID=$myXML2.SelectNodes("//ConnectedPlayers/dictionary/item | //DisconnectedPlayers/dictionary/item" , $ns2) 
     ForEach($node in $nodePIDs){
-        $nodeid = $node.PlayerId
-        $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock[Owner='$nodeid']"  , $ns).Count
-            If($nodeOwns -eq 0){
-              $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyObjectBuilder_Faction/Members/MyObjectBuilder_FactionMember[PlayerId='$nodeid']" , $ns2)
-              $selectdelete.ParentNode.RemoveChild($selectdelete)
-              $selectdelete = $myXML2.SelectSingleNode("//Factions/Players/dictionary/item[Key='$nodeid']", $ns2)
-              $selectdelete.ParentNode.RemoveChild($selectdelete)
-              $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyobjectBuilder_Faction/JoinRequests/MyObjectBuilder_FactionMember[PlayerId='$nodeid']" , $ns2)
-              $selectdelete.ParentNode.RemoveChild($selectdelete)
-              $node.ParentNode.RemoveChild($node)
+        ForEach($node3 in $nodeClientID){
+            IF($node3.Value.InnerText -eq $node.PlayerId){
+                $nodename = $node3.Key.ClientId
+                $nodeid = $node.PlayerId
+                $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock[Owner='$nodeid']"  , $ns).Count
+                If($nodeOwns -eq 0){
+                  $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyObjectBuilder_Faction/Members/MyObjectBuilder_FactionMember[PlayerId='$nodeid']" , $ns2)
+                  $selectdelete.ParentNode.RemoveChild($selectdelete)
+                  $selectdelete = $myXML2.SelectSingleNode("//Factions/Players/dictionary/item[Key='$nodeid']", $ns2)
+                  $selectdelete.ParentNode.RemoveChild($selectdelete)
+                  $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyobjectBuilder_Faction/JoinRequests/MyObjectBuilder_FactionMember[PlayerId='$nodeid']" , $ns2)
+                  $selectdelete.ParentNode.RemoveChild($selectdelete)
+                  $node3.ParentNode.RemoveChild($node3)
+                  $node.ParentNode.RemoveChild($node)
+                  $deletedplayer = $deletedplayer + 1
+                }
             }
+        }
     }
+
 #remove empty factions
     $nodeFactions = $myXML2.SelectNodes("//Factions/Factions/MyObjectBuilder_Faction" , $ns2)
     ForEach($faction in $nodeFactions){
