@@ -22,14 +22,17 @@ $ns2.AddNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
         $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock[Owner='$playerid']"  , $ns).count
         IF($clientcount -eq 0 -and $nodeOwns -eq 0){
             $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyObjectBuilder_Faction/Members/MyObjectBuilder_FactionMember[PlayerId='$playerid']" , $ns2)
-            $selectdelete.ParentNode.RemoveChild($selectdelete)
+            Try{$selectdelete.ParentNode.RemoveChild($selectdelete)}
+            Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)] is not a member of a faction, proceeding..."}
             $selectdelete = $myXML2.SelectSingleNode("//Factions/Players/dictionary/item[Key='$playerid']", $ns2)
-            $selectdelete.ParentNode.RemoveChild($selectdelete)
+            Try{$selectdelete.ParentNode.RemoveChild($selectdelete)}
+            Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)]; no faction dictionary data found, proceeding..."}
             $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyobjectBuilder_Faction/JoinRequests/MyObjectBuilder_FactionMember[PlayerId='$playerid']" , $ns2)
-            $selectdelete.ParentNode.RemoveChild($selectdelete)
+            Try{$selectdelete.ParentNode.RemoveChild($selectdelete)}
+            Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)] has no faction join requests, proceeding..."}
             $node.ParentNode.RemoveChild($node)
             Write-Host -ForegroundColor Green " abandoned ID deleted "
-        }
+        } 
     }
 
 # remove players who dont own anything    
@@ -44,15 +47,18 @@ $ns2.AddNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
                 $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock[Owner='$nodeid']"  , $ns).Count
                 If($nodeOwns -eq 0){
                   $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyObjectBuilder_Faction/Members/MyObjectBuilder_FactionMember[PlayerId='$nodeid']" , $ns2)
-                  $selectdelete.ParentNode.RemoveChild($selectdelete)
+                  Try{$selectdelete.ParentNode.RemoveChild($selectdelete)}
+                  Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)] is not a member of a faction, proceeding..."}
                   $selectdelete = $myXML2.SelectSingleNode("//Factions/Players/dictionary/item[Key='$nodeid']", $ns2)
-                  $selectdelete.ParentNode.RemoveChild($selectdelete)
+                  Try{$selectdelete.ParentNode.RemoveChild($selectdelete)}
+                  Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)]; no faction dictionary data found, proceeding..."}
                   $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyobjectBuilder_Faction/JoinRequests/MyObjectBuilder_FactionMember[PlayerId='$nodeid']" , $ns2)
-                  $selectdelete.ParentNode.RemoveChild($selectdelete)
+                  Try{$selectdelete.ParentNode.RemoveChild($selectdelete)}
+                  Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)] has no faction join requests, proceeding..."}
                   $node3.ParentNode.RemoveChild($node3)
                   $node.ParentNode.RemoveChild($node)
                   $deletedplayer = $deletedplayer + 1
-                }
+                } 
             }
         }
     }
