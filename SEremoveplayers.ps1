@@ -66,7 +66,7 @@ $ns2.AddNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
 #remove empty factions
     $nodeFactions = $myXML2.SelectNodes("//Factions/Factions/MyObjectBuilder_Faction" , $ns2)
     ForEach($faction in $nodeFactions){
-        $membercount = $faction.Members.MyObjectBuilder_FactionMember.count
+        $membercount = $faction.SelectNodes("Members/MyObjectBuilder_FactionMember" , $ns2).count
         $factionid = $faction.FactionId
         If($membercount -eq 0 -or $membercount -eq $null){
             $selectdelete = $myXML2.SelectNodes("//Factions/Requests/MyObjectBuilder_FactionRequests[FactionId='$factionid']" , $ns2)
