@@ -15,11 +15,11 @@ $ns2.AddNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
 #wipe orphaned id's (permanent death issue) if dead player owns nothing.
     [string]$compare = "360"
     $nodePIDs = $myXML2.SelectNodes("//Identities/MyObjectBuilder_Identity"  , $ns2)
-    $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock[Owner='$playerid']"  , $ns)
     ForEach($node in $nodePIDs){
-        $NPCID = [string]$node.PlayerId.InnerText[0] + [string]$node.PlayerId.InnerText[1] + [string]$node.PlayerId.InnerText[2]
+        $NPCID = [string]$node.PlayerId[0] + [string]$node.PlayerId[1] + [string]$node.PlayerId[2]
         $playerid = $node.PlayerId
-        $clientcount=$myXML2.SelectNodes("//ConnectedPlayers/dictionary/item[Value='$playerid'] | //DisconnectedPlayers/dictionary/item[Value='$playerid']" , $ns2).count
+        $client = $myXML2.SelectSingleNode("//DisconnectedPlayers/dictionary/item[Value='$playerid']" , $ns2)
+        $clientcount= $client.count
         $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock[Owner='$playerid']"  , $ns).count
         IF($clientcount -eq 0 -and $nodeOwns -eq 0 -and $NPCID -ne $compare){
             $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyObjectBuilder_Faction/Members/MyObjectBuilder_FactionMember[PlayerId='$playerid']" , $ns2)
@@ -39,11 +39,9 @@ $ns2.AddNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
 # remove players who dont own anything    
 
     $nodePIDs = $myXML2.SelectNodes("//Identities/MyObjectBuilder_Identity"  , $ns2)
-    $nodeClientID=$myXML2.SelectNodes("//ConnectedPlayers/dictionary/item | //DisconnectedPlayers/dictionary/item" , $ns2) 
     ForEach($node in $nodePIDs){
-        ForEach($node3 in $nodeClientID){
-            IF($node3.Value.InnerText -eq $node.PlayerId){
-                $nodename = $node3.Key.ClientId
+                $nodeClientID=$myXML2.SelectSingleNode("//DisconnectedPlayers/dictionary/item[Value='$($node.PlayerId)']" , $ns2)
+                $nodename = $nodeClientID.ParentNode.Item.Key.ClientId
                 $nodeid = $node.PlayerId
                 $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock[Owner='$nodeid']"  , $ns).Count
                 If($nodeOwns -eq 0){
@@ -56,12 +54,11 @@ $ns2.AddNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
                   $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyObjectBuilder_Faction/JoinRequests/MyObjectBuilder_FactionMember[PlayerId='$nodeid']" , $ns2)
                   Try{$selectdelete.ParentNode.RemoveChild($selectdelete)}
                   Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)] has no faction join requests, proceeding..."}
-                  $node3.ParentNode.RemoveChild($node3)
+                  Try{$nodeClientID.ParentNode.RemoveChild($nodeClientID)}
+                  Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)] has no connection status, proceeding..."}
                   $node.ParentNode.RemoveChild($node)
                   $deletedplayer = $deletedplayer + 1
                 } 
-            }
-        }
     }
 
 #remove empty factions
