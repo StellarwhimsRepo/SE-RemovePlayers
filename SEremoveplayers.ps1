@@ -54,7 +54,7 @@ $ns2.AddNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
                   $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyObjectBuilder_Faction/JoinRequests/MyObjectBuilder_FactionMember[PlayerId='$nodeid']" , $ns2)
                   Try{$selectdelete.ParentNode.RemoveChild($selectdelete)}
                   Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)] has no faction join requests, proceeding..."}
-                  Try{$nodeClientID.ParentNode.RemoveChild($nodeClientID)}
+                  Try{$nodeClientID.ParentNode.ParentNode.RemoveChild($nodeClientID.ParentNode)}
                   Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)] has no connection status, proceeding..."}
                   $node.ParentNode.RemoveChild($node)
                   $deletedplayer = $deletedplayer + 1
