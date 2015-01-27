@@ -3,11 +3,11 @@ $filePath2 = 'your save path here\SANDBOX.sbc'
 
 # ===== only change the above values
 
-[xml]$myXML = Get-Content $filePath
+[xml]$myXML = Get-Content $filePath -Encoding UTF8
 $ns = New-Object System.Xml.XmlNamespaceManager($myXML.NameTable)
 $ns.AddNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
 
-[xml]$myXML2 = Get-Content $filePath2
+[xml]$myXML2 = Get-Content $filePath2 -Encoding UTF8
 $ns2 = New-Object System.Xml.XmlNamespaceManager($myXML2.NameTable)
 $ns2.AddNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
 
@@ -32,6 +32,18 @@ $ns2.AddNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
             $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyObjectBuilder_Faction/JoinRequests/MyObjectBuilder_FactionMember[PlayerId='$playerid']" , $ns2)
             Try{$selectdelete.ParentNode.RemoveChild($selectdelete)}
             Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)] has no faction join requests, proceeding..."}
+            $selectdelete = $myXML2.SelectSingleNode("//Gps/dictionary/item[Key='$playerid']", $ns2)
+            Try{$selectdelete.ParentNode.RemoveChild($selectdelete)}
+            Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)]; no GPS dictionary data found, proceeding..."}
+            $selectdelete = $myXML2.SelectSingleNode("//ChatHistory/MyObjectBuilder_ChatHistory[IdentityId='$playerid']", $ns2)
+            Try{$selectdelete.ParentNode.RemoveChild($selectdelete)}
+            Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)]; no player owned chat data found, proceeding..."}
+            $otherchat=$null
+            $selectdelete = $myXML2.SelectNodes("//ChatHistory/MyObjectBuilder_ChatHistory/PlayerChatHistory/MyObjectBuilder_PlayerChatHistory[ID='$playerid']", $ns2)
+            ForEach($otherchat in $selectdelete){
+            Try{$otherchat.ParentNode.RemoveChild($otherchat)}
+            Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)]; no other chat data found, proceeding..."}
+            }
             $node.ParentNode.RemoveChild($node)
             Write-Host -ForegroundColor Green " abandoned ID deleted "
         } 
@@ -68,6 +80,18 @@ $ns2.AddNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
                   Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)] has no faction join requests, proceeding..."}
                   Try{$nodeClientID.ParentNode.ParentNode.RemoveChild($nodeClientID.ParentNode)}
                   Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)] has no connection status, proceeding..."}
+                  $selectdelete = $myXML2.SelectSingleNode("//Gps/dictionary/item[Key='$nodeid']", $ns2)
+                  Try{$selectdelete.ParentNode.RemoveChild($selectdelete)}
+                  Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)]; no GPS dictionary data found, proceeding..."}
+                  $selectdelete = $myXML2.SelectSingleNode("//ChatHistory/MyObjectBuilder_ChatHistory[IdentityId='$nodeid']", $ns2)
+                  Try{$selectdelete.ParentNode.RemoveChild($selectdelete)}
+                  Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)]; no player owned chat data found, proceeding..."}
+                  $otherchat=$null
+                  $selectdelete = $myXML2.SelectNodes("//ChatHistory/MyObjectBuilder_ChatHistory/PlayerChatHistory/MyObjectBuilder_PlayerChatHistory[ID='$nodeid']", $ns2)
+                  ForEach($otherchat in $selectdelete){
+                  Try{$otherchat.ParentNode.RemoveChild($otherchat)}
+                  Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)]; no other chat data found, proceeding..."}
+                  }
                   $node.ParentNode.RemoveChild($node)
                   $deletedplayer = $deletedplayer + 1
                 } 
@@ -86,6 +110,11 @@ $ns2.AddNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
             $selectdelete = $myXML2.SelectNodes("//Factions/Relations/MyObjectBuilder_FactionRelation[FactionId1='$factionid' or FactionId2='$factionid']" , $ns2)
             ForEach($selected in $selectdelete){
                 $selected.ParentNode.RemoveChild($selected)
+            }
+            $selectdelete = $myXML2.SelectNodes("//FactionChatHistory/MyObjectBuilder_FactionChatHistory[ID1='$factionid'] | //FactionChatHistory/MyObjectBuilder_FactionChatHistory[ID2='$factionid']" , $ns2)
+            ForEach($selected in $selectdelete){
+                Try{$selected.ParentNode.RemoveChild($selected)}
+                Catch{Write-Host -ForegroundColor Green "[$($node.DisplayName)]; no other faction chat data found, proceeding..."}
             }
             #Add-Content -Path $playerspath -Value "Deleted faction $($faction.Name) ..."
             #Write-Host -ForegroundColor Green "actioned! $membercount"
