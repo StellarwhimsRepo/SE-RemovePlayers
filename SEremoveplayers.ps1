@@ -13,12 +13,12 @@ $ns2.AddNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
 
 
 #wipe orphaned id's (permanent death issue) if dead player owns nothing.
-    [string]$compare = "360"
+    [string]$compare = "Neutral NPC"
     $nodePIDs = $myXML2.SelectNodes("//Identities/MyObjectBuilder_Identity"  , $ns2)
     Write-Host -ForegroundColor Green " checking for abandoned ID's ... "
     ForEach($node in $nodePIDs){
-        $NPCID = [string]$node.PlayerId[0] + [string]$node.PlayerId[1] + [string]$node.PlayerId[2]
-        $playerid = $node.PlayerId
+        $NPCID = [string]$node.DisplayName
+        $playerid = $node.IdentityId
         $client = $myXML2.SelectSingleNode("//AllPlayersData/dictionary/item/Value[IdentityId='$playerid']" , $ns2)
         $clientcount= $client.count
         $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock[Owner='$playerid']"  , $ns).count
@@ -54,8 +54,8 @@ $ns2.AddNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
     Write-Host -ForegroundColor Green " scanning for orphaned blocks ..."
     $orphOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock/Owner"  , $ns)
     ForEach($node in $orphOwns){
-    $clients = $myXML2.SelectSingleNode("//Identities/MyObjectBuilder_Identity[PlayerId='$($node.InnerText)']" , $ns2)
-    If($clients.PlayerId.count -eq 0){
+    $clients = $myXML2.SelectSingleNode("//Identities/MyObjectBuilder_Identity[IdentityId='$($node.InnerText)']" , $ns2)
+    If($clients.IdentityId.count -eq 0){
     $node.ParentNode.RemoveChild($node)
     }
     }
@@ -64,9 +64,9 @@ $ns2.AddNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
 
     $nodePIDs = $myXML2.SelectNodes("//Identities/MyObjectBuilder_Identity"  , $ns2)
     ForEach($node in $nodePIDs){
-                $nodeClientID=$myXML2.SelectSingleNode("//AllPlayersData/dictionary/item/Value[IdentityId='$($node.PlayerId)']" , $ns2)
+                $nodeClientID=$myXML2.SelectSingleNode("//AllPlayersData/dictionary/item/Value[IdentityId='$($node.IdentityId)']" , $ns2)
                 $nodename = $nodeClientID.ParentNode.Key.ClientId
-                $nodeid = $node.PlayerId
+                $nodeid = $node.IdentityId
                 $nodeOwns = $myXML.SelectNodes("//SectorObjects/MyObjectBuilder_EntityBase[(@xsi:type='MyObjectBuilder_CubeGrid')]/CubeBlocks/MyObjectBuilder_CubeBlock[Owner='$nodeid']"  , $ns).Count
                 If($nodeOwns -eq 0){
                   $selectdelete = $myXML2.SelectSingleNode("//Factions/Factions/MyObjectBuilder_Faction/Members/MyObjectBuilder_FactionMember[PlayerId='$nodeid']" , $ns2)
