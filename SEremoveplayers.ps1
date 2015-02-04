@@ -124,6 +124,17 @@ $ns2.AddNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
         #IF($membercount -ne 0 -or $membercount-ne $null){Write-Host -ForegroundColor Green "no action $membercount"}
     }
 
+    #purge chats
+        $factionchats = $myXML2.SelectNodes("//FactionChatHistory/MyObjectBuilder_FactionChatHistory" , $ns2)
+        ForEach($chat in $factionchats){
+        $chat.ParentNode.RemoveChild($chat)
+        }
+
+        $chathistory = $myXML2.SelectNodes("//ChatHistory/MyObjectBuilder_ChatHistory" , $ns2)
+        ForEach($chathist in $chathistory){
+        $chathist.ParentNode.RemoveChild($chathist)
+        }
+
     $myXML.Save($filePath)
     $myXML2.Save($filePath2)
 
